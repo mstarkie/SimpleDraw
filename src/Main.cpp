@@ -37,16 +37,17 @@ int modes[] = {
 	GL_TRIANGLES
 };
 
+/*
 float three_points[] = {
 	-0.5f, -0.5f,
 	 0.0f,  0.5f,
 	 0.5f, -0.5f
 };
 
-/* vertices from 2 adjacent triangles forming a square */
 unsigned int indices[] = {
 	0, 1, 2
 };
+*/
 
 int modeIdx = 0;
 int curMode = 0;
@@ -54,47 +55,6 @@ int curMode = 0;
 
 static void error_callback(int error, const char* description) {
 	std::cout << "error = " << error << ", description = " << description << std::endl;
-}
-
-static void genBuffer(float points[], int p_size, unsigned int indxs[], int i_size) {
-	unsigned int vertex_buffer_obj;
-	GlCall(glGenBuffers(1, &vertex_buffer_obj));
-	GlCall(glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj));
-	GlCall(glBufferData(GL_ARRAY_BUFFER, (p_size * sizeof(float)), points, GL_STATIC_DRAW));
-	GlCall(glEnableVertexAttribArray(0));
-	GlCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0); // tell GL the vertices start at idx 0 and are 2 floats long.
-	unsigned int index_buffer_obj);
-	GlCall(glGenBuffers(1, &index_buffer_obj));
-	GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_obj));
-	GlCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, (i_size * sizeof(unsigned int)), indxs, GL_STATIC_DRAW)); // initialize the buffer store with data
-}
-
-/*
- * drawScene() handles the animation and the redrawing of the
- *		graphics window contents.
- */
-static void drawScene() {
-	GlCall(glDrawElements(curMode, 6, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
-}
-
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (action != GLFW_PRESS)
-		return;
-
-	switch (key) {
-		case GLFW_KEY_SPACE:
-			modeIdx = modeIdx % A_LENGTH(modes);
-			curMode = modes[modeIdx];
-			modeIdx += 1;
-			break;
-
-		case GLFW_KEY_ESCAPE:
-			std::cout << "Goodbye!" << std::endl;
-			glfwSetWindowShouldClose(window, GL_TRUE);
-			glfwDestroyWindow(window);
-			glfwTerminate();
-			exit(EXIT_SUCCESS);
-	}
 }
 
 static ShaderProgramSource ParseShader(const std::string& filepath) {
@@ -154,7 +114,6 @@ static unsigned int CompileShader(unsigned int type, const std::string& source) 
 	return id;
 }
 
-
 static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader) {
 	unsigned int program = glCreateProgram();
 	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
@@ -171,6 +130,89 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 
 	return program;
 }
+
+static void genBuffer(float points[], int p_size, unsigned int indxs[], int i_size, unsigned int vbuf, unsigned int ibuf) {
+	GlCall(glGenBuffers(1, &vbuf));
+	GlCall(glBindBuffer(GL_ARRAY_BUFFER, vbuf));
+	GlCall(glBufferData(GL_ARRAY_BUFFER, (p_size * sizeof(float)), points, GL_STATIC_DRAW));
+	GlCall(glEnableVertexAttribArray(0));
+	GlCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0)); // tell GL the vertices start at idx 0 and are 2 floats long.
+	GlCall(glGenBuffers(1, &ibuf));
+	GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf));
+	GlCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, (i_size * sizeof(unsigned int)), indxs, GL_STATIC_DRAW)); // initialize the buffer store with data
+}
+
+/* Normalize lower left screen coordinate system (0 to 3) to center screen coordinate system (-1 to +1)*/
+static float n(float x) {
+	float normalized = 2 * (((x - 0) / (3 - 0))) - 1;
+	return normalized;
+}
+
+static void drawPoints() {
+	float points[] = { n(1.0), n(1.0), n(2.0), n(1.0), n(2.0), n(2.0) };
+	//float points[] = { 0.5f, 0.5f, 0.5f, -0.5f, -0.5f, -0.5f };
+	//float points[] = { -0.5f, -0.5f, 0.0f, 0.5f, 0.5f, -0.5f };
+	unsigned int indices[] = { 0, 1, 2 };
+	unsigned int vertex_buffer = 0;
+	unsigned int idx_buffer = 0;
+	genBuffer(points, 6, indices, 3, vertex_buffer, idx_buffer);
+	GlCall(glDrawElements(GL_POINTS, 6, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
+	GlCall(glDeleteBuffers(1, &vertex_buffer));
+	GlCall(glDeleteBuffers(1, &idx_buffer));
+}
+
+static void drawLines(int mode) {
+	float points[] = { n(0.5), n(1.0), n(2.0), n(2.0), n(1.8), n(2.6), n(0.7), n(2.2), n(1.6), n(1.2), n(1.0), n(0.5) };
+	unsigned int indices[] = { 0, 1, 2, 3, 4, 5, 6 };
+	unsigned int vertex_buffer = 0;
+	unsigned int idx_buffer = 0;
+	genBuffer(points, 12, indices, 6, vertex_buffer, idx_buffer);
+	GlCall(glDrawElements(mode, 6, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
+	GlCall(glDeleteBuffers(1, &vertex_buffer));
+	GlCall(glDeleteBuffers(1, &idx_buffer));
+}
+
+/*
+ * drawScene() handles the animation and the redrawing of the
+ *		graphics window contents.
+ */
+static void drawScene() {
+	switch (curMode) {
+		case GL_POINTS:
+			drawPoints();
+			break;
+		case GL_LINES:
+		case GL_LINE_STRIP:
+		case GL_LINE_LOOP:
+			drawLines(curMode);
+			break;
+		case GL_TRIANGLES:
+			break;
+	}
+
+}
+
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (action != GLFW_PRESS)
+		return;
+
+	switch (key) {
+		case GLFW_KEY_SPACE:
+			modeIdx = modeIdx % A_LENGTH(modes);
+			curMode = modes[modeIdx];
+			modeIdx += 1;
+			break;
+
+		case GLFW_KEY_ESCAPE:
+			std::cout << "Goodbye!" << std::endl;
+			glfwSetWindowShouldClose(window, GL_TRUE);
+			glfwDestroyWindow(window);
+			glfwTerminate();
+			exit(EXIT_SUCCESS);
+	}
+}
+
+
 
 int main() {
 	GLFWwindow* window;
@@ -215,8 +257,6 @@ int main() {
 	int location = glGetUniformLocation(shader, "u_Color");
 	ASSERT(location != -1);
 	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); //red
-
-	genBuffer(three_points, 6, indices, 3);
 
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "OpenGL Vendor : " << glGetString(GL_VENDOR) << std::endl;
