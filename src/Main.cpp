@@ -37,21 +37,9 @@ int modes[] = {
 	GL_TRIANGLES
 };
 
-/*
-float three_points[] = {
-	-0.5f, -0.5f,
-	 0.0f,  0.5f,
-	 0.5f, -0.5f
-};
-
-unsigned int indices[] = {
-	0, 1, 2
-};
-*/
-
+int location = 0;
 int modeIdx = 0;
 int curMode = 0;
-//float* points = three_points;
 
 static void error_callback(int error, const char* description) {
 	std::cout << "error = " << error << ", description = " << description << std::endl;
@@ -171,26 +159,40 @@ static void drawLines(int mode) {
 }
 
 static void drawTriangles() {
-	float points[] = {
+	float p1[] = {
 		n(0.3), n(1.0), n(0.5),
 		n(2.7), n(0.85), n(0.0),
-		n(2.7), n(1.15), n(0.0),
-
+		n(2.7), n(1.15), n(0.0)
+	};
+	float p2[] = {
 		n(2.53), n(0.71), n(0.5),
 		n(1.46), n(2.86), n(0.0),
-		n(1.2), n(2.71), n(0.0),
-
+		n(1.2), n(2.71), n(0.0)
+	};
+	float p3[] = {
 		n(1.667), n(2.79), n(0.5),
 		n(0.337), n(0.786), n(0.0),
 		n(0.597), n(0.636), n(0.0)
 	};
-	unsigned int indices[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+	unsigned int indices[] = { 0, 1, 2 };
 	unsigned int vertex_buffer = 0;
 	unsigned int idx_buffer = 0;
-	genBuffer(points, 27, indices, 9, vertex_buffer, idx_buffer, 3);
-	GlCall(glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
+	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0));
+	genBuffer(p1, 9, indices, 3, vertex_buffer, idx_buffer, 3);
+	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
 	GlCall(glDeleteBuffers(1, &vertex_buffer));
 	GlCall(glDeleteBuffers(1, &idx_buffer));
+	GlCall(glUniform4f(location, 0.0, 1.0, 0.0, 1.0)); 
+	genBuffer(p2, 9, indices, 3, vertex_buffer, idx_buffer, 3);
+	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
+	GlCall(glDeleteBuffers(1, &vertex_buffer));
+	GlCall(glDeleteBuffers(1, &idx_buffer));
+	GlCall(glUniform4f(location, 0.0, 0.0, 1.0, 1.0));
+	genBuffer(p3, 9, indices, 3, vertex_buffer, idx_buffer, 3);
+	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
+	GlCall(glDeleteBuffers(1, &vertex_buffer));
+	GlCall(glDeleteBuffers(1, &idx_buffer));
+	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0));
 }
 
 /*
@@ -276,7 +278,7 @@ int main() {
 	GlCall(glUseProgram(shader));
 
 	/* Set the global variable u_Color in the fragment shader to a specific color */
-	int location = glGetUniformLocation(shader, "u_Color");
+	location = glGetUniformLocation(shader, "u_Color");
 	ASSERT(location != -1);
 	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); //red
 
