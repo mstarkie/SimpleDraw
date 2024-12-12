@@ -131,12 +131,12 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 	return program;
 }
 
-static void genBuffer(float points[], int p_size, unsigned int indxs[], int i_size, unsigned int vbuf, unsigned int ibuf) {
+static void genBuffer(float points[], int p_size, unsigned int indxs[], int i_size, unsigned int vbuf, unsigned int ibuf, unsigned int points_per_vertex) {
 	GlCall(glGenBuffers(1, &vbuf));
 	GlCall(glBindBuffer(GL_ARRAY_BUFFER, vbuf));
 	GlCall(glBufferData(GL_ARRAY_BUFFER, (p_size * sizeof(float)), points, GL_STATIC_DRAW));
 	GlCall(glEnableVertexAttribArray(0));
-	GlCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0)); // tell GL the vertices start at idx 0 and are 2 floats long.
+	GlCall(glVertexAttribPointer(0, points_per_vertex, GL_FLOAT, GL_FALSE, 0, 0)); // tell GL the vertices start at idx 0 and are 2 floats long.
 	GlCall(glGenBuffers(1, &ibuf));
 	GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf));
 	GlCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, (i_size * sizeof(unsigned int)), indxs, GL_STATIC_DRAW)); // initialize the buffer store with data
@@ -150,12 +150,10 @@ static float n(float x) {
 
 static void drawPoints() {
 	float points[] = { n(1.0), n(1.0), n(2.0), n(1.0), n(2.0), n(2.0) };
-	//float points[] = { 0.5f, 0.5f, 0.5f, -0.5f, -0.5f, -0.5f };
-	//float points[] = { -0.5f, -0.5f, 0.0f, 0.5f, 0.5f, -0.5f };
 	unsigned int indices[] = { 0, 1, 2 };
 	unsigned int vertex_buffer = 0;
 	unsigned int idx_buffer = 0;
-	genBuffer(points, 6, indices, 3, vertex_buffer, idx_buffer);
+	genBuffer(points, 6, indices, 3, vertex_buffer, idx_buffer, 2);
 	GlCall(glDrawElements(GL_POINTS, 6, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
 	GlCall(glDeleteBuffers(1, &vertex_buffer));
 	GlCall(glDeleteBuffers(1, &idx_buffer));
@@ -166,8 +164,31 @@ static void drawLines(int mode) {
 	unsigned int indices[] = { 0, 1, 2, 3, 4, 5 };
 	unsigned int vertex_buffer = 0;
 	unsigned int idx_buffer = 0;
-	genBuffer(points, 12, indices, 6, vertex_buffer, idx_buffer);
+	genBuffer(points, 12, indices, 6, vertex_buffer, idx_buffer, 2);
 	GlCall(glDrawElements(mode, 6, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
+	GlCall(glDeleteBuffers(1, &vertex_buffer));
+	GlCall(glDeleteBuffers(1, &idx_buffer));
+}
+
+static void drawTriangles() {
+	float points[] = {
+		n(0.3), n(1.0), n(0.5),
+		n(2.7), n(0.85), n(0.0),
+		n(2.7), n(1.15), n(0.0),
+
+		n(2.53), n(0.71), n(0.5),
+		n(1.46), n(2.86), n(0.0),
+		n(1.2), n(2.71), n(0.0),
+
+		n(1.667), n(2.79), n(0.5),
+		n(0.337), n(0.786), n(0.0),
+		n(0.597), n(0.636), n(0.0)
+	};
+	unsigned int indices[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+	unsigned int vertex_buffer = 0;
+	unsigned int idx_buffer = 0;
+	genBuffer(points, 27, indices, 9, vertex_buffer, idx_buffer, 3);
+	GlCall(glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
 	GlCall(glDeleteBuffers(1, &vertex_buffer));
 	GlCall(glDeleteBuffers(1, &idx_buffer));
 }
@@ -187,6 +208,7 @@ static void drawScene() {
 			drawLines(curMode);
 			break;
 		case GL_TRIANGLES:
+			drawTriangles();
 			break;
 	}
 
