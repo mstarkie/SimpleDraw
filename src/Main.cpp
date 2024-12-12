@@ -3,7 +3,7 @@
 	by Samuel R. Buss, 1st Edition published 2005.
 	The original OpenGL v1 code can be found here: 
 	https://mathweb.ucsd.edu/~sbuss/MathCG/OpenGLsoft/SimpleDraw/SimpleDraw.html
-	This is working port of the same program to OpenGL v4.6
+	This is a working port of the same program to OpenGL v4.6
  */
 
 /*
@@ -189,17 +189,17 @@ static void drawLines(int mode) {
 
 static void drawTriangles() {
 	float p1[] = {
-		n(0.3), n(1.0), n(0.5),
-		n(2.7), n(0.85), n(0.0),
-		n(2.7), n(1.15), n(0.0)
+		n(0.3),   n(1.0),   n(0.5),
+		n(2.7),   n(0.85),  n(0.0),
+		n(2.7),   n(1.15),  n(0.0)
 	};
 	float p2[] = {
-		n(2.53), n(0.71), n(0.5),
-		n(1.46), n(2.86), n(0.0),
-		n(1.2), n(2.71), n(0.0)
+		n(2.53),  n(0.71),  n(0.5),
+		n(1.46),  n(2.86),  n(0.0),
+		n(1.2),   n(2.71),  n(0.0)
 	};
 	float p3[] = {
-		n(1.667), n(2.79), n(0.5),
+		n(1.667), n(2.79),  n(0.5),
 		n(0.337), n(0.786), n(0.0),
 		n(0.597), n(0.636), n(0.0)
 	};
