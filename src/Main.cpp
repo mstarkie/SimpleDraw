@@ -163,7 +163,7 @@ static void drawPoints() {
 
 static void drawLines(int mode) {
 	float points[] = { n(0.5), n(1.0), n(2.0), n(2.0), n(1.8), n(2.6), n(0.7), n(2.2), n(1.6), n(1.2), n(1.0), n(0.5) };
-	unsigned int indices[] = { 0, 1, 2, 3, 4, 5, 6 };
+	unsigned int indices[] = { 0, 1, 2, 3, 4, 5 };
 	unsigned int vertex_buffer = 0;
 	unsigned int idx_buffer = 0;
 	genBuffer(points, 12, indices, 6, vertex_buffer, idx_buffer);
