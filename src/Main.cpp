@@ -143,8 +143,6 @@ static void drawPoints() {
 	unsigned int idx_buffer = 0;
 	genBuffer(points, 6, indices, 3, vertex_buffer, idx_buffer, 2);
 	GlCall(glDrawElements(GL_POINTS, 6, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
-	GlCall(glDeleteBuffers(1, &vertex_buffer));
-	GlCall(glDeleteBuffers(1, &idx_buffer));
 }
 
 static void drawLines(int mode) {
@@ -154,8 +152,6 @@ static void drawLines(int mode) {
 	unsigned int idx_buffer = 0;
 	genBuffer(points, 12, indices, 6, vertex_buffer, idx_buffer, 2);
 	GlCall(glDrawElements(mode, 6, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
-	GlCall(glDeleteBuffers(1, &vertex_buffer));
-	GlCall(glDeleteBuffers(1, &idx_buffer));
 }
 
 static void drawTriangles() {
@@ -180,18 +176,12 @@ static void drawTriangles() {
 	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0));
 	genBuffer(p1, 9, indices, 3, vertex_buffer, idx_buffer, 3);
 	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
-	GlCall(glDeleteBuffers(1, &vertex_buffer));
-	GlCall(glDeleteBuffers(1, &idx_buffer));
 	GlCall(glUniform4f(location, 0.0, 1.0, 0.0, 1.0)); 
 	genBuffer(p2, 9, indices, 3, vertex_buffer, idx_buffer, 3);
 	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
-	GlCall(glDeleteBuffers(1, &vertex_buffer));
-	GlCall(glDeleteBuffers(1, &idx_buffer));
 	GlCall(glUniform4f(location, 0.0, 0.0, 1.0, 1.0));
 	genBuffer(p3, 9, indices, 3, vertex_buffer, idx_buffer, 3);
 	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
-	GlCall(glDeleteBuffers(1, &vertex_buffer));
-	GlCall(glDeleteBuffers(1, &idx_buffer));
 	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0));
 }
 
