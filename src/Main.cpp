@@ -172,16 +172,16 @@ static void drawTriangles() {
 		n(0.597), n(0.636), n(0.0)
 	};
 	unsigned int indices[] = { 0, 1, 2 };
-	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0));
+	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); // red
 	bufferData(p1, 9, indices, 3, 3);
-	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
-	GlCall(glUniform4f(location, 0.0, 1.0, 0.0, 1.0)); 
+	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr));
+	GlCall(glUniform4f(location, 0.0, 1.0, 0.0, 1.0)); // green
 	bufferData(p2, 9, indices, 3, 3);
-	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
-	GlCall(glUniform4f(location, 0.0, 0.0, 1.0, 1.0));
+	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr));
+	GlCall(glUniform4f(location, 0.0, 0.0, 1.0, 1.0)); // blue
 	bufferData(p3, 9, indices, 3, 3);
-	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
-	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0));
+	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr));
+	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); // red
 }
 
 /*
@@ -271,6 +271,7 @@ int main() {
 	ASSERT(location != -1);
 	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); //red
 
+	/* alloc the array and index buffers in the GPU */
 	genBuffers();
 
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
@@ -280,8 +281,8 @@ int main() {
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		/* handle user interaction and draw */
 		drawScene();
-		//std::cout << "poll" << std::endl;
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
