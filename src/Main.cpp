@@ -126,10 +126,10 @@ static void genBuffers() {
 	GlCall(glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer));
 	GlCall(glGenBuffers(1, &idx_buffer));
 	GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idx_buffer));
+	GlCall(glEnableVertexAttribArray(0));
 }
 
 static void bufferData(float points[], int p_size, unsigned int indxs[], int i_size, unsigned int points_per_vertex) {
-	GlCall(glEnableVertexAttribArray(0));
 	GlCall(glVertexAttribPointer(0, points_per_vertex, GL_FLOAT, GL_FALSE, 0, 0)); // tell GL the vertices start at idx 0 and are 2 floats long.
 	GlCall(glBufferData(GL_ARRAY_BUFFER, (p_size * sizeof(float)), points, GL_STATIC_DRAW));
 	GlCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, (i_size * sizeof(unsigned int)), indxs, GL_STATIC_DRAW)); // initialize the buffer store with data
