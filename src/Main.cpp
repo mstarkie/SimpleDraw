@@ -1,35 +1,35 @@
 /*
 	This is the SampleDraw application used in the book 3-D Computer Graphics
 	by Samuel R. Buss, 1st Edition published 2005.
-	The original OpenGL v1 code can be found here: 
+	The original OpenGL v1 code can be found here:
 	https://mathweb.ucsd.edu/~sbuss/MathCG/OpenGLsoft/SimpleDraw/SimpleDraw.html
 	This is a working port of the same program to OpenGL v4.6
  */
 
-/*
-	MIT License
+ /*
+	 MIT License
 
-	Copyright (c) 2024 Michael Starkie
+	 Copyright (c) 2024 Michael Starkie
 
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
+	 Permission is hereby granted, free of charge, to any person obtaining a copy
+	 of this software and associated documentation files (the "Software"), to deal
+	 in the Software without restriction, including without limitation the rights
+	 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	 copies of the Software, and to permit persons to whom the Software is
+	 furnished to do so, subject to the following conditions:
 
-	The above copyright notice and this permission notice shall be included in all
-	copies or substantial portions of the Software.
+	 The above copyright notice and this permission notice shall be included in all
+	 copies or substantial portions of the Software.
 
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-	SOFTWARE.
+	 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	 SOFTWARE.
 
-*/
+ */
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -154,11 +154,11 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 }
 
 static void genBuffers() {
+	GlCall(glEnableVertexAttribArray(0));
 	GlCall(glGenBuffers(1, &vertex_buffer));
 	GlCall(glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer));
 	GlCall(glGenBuffers(1, &idx_buffer));
 	GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idx_buffer));
-	GlCall(glEnableVertexAttribArray(0));
 }
 
 static void bufferData(float points[], int p_size, unsigned int indxs[], int i_size, unsigned int points_per_vertex) {
@@ -264,6 +264,10 @@ int main() {
 
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
 	glfwSetErrorCallback(error_callback);
 
