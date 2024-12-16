@@ -30,6 +30,8 @@
 	 SOFTWARE.
 
  */
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -43,11 +45,13 @@
 	x;\
 	ASSERT(GlLogCall(#x, __FILE__, __LINE__))
 
-static void GlClearError() {
+static void GlClearError() 
+{
 	while (glGetError() != GL_NO_ERROR);
 }
 
-static bool GlLogCall(const char* function, const char* file, int line) {
+static bool GlLogCall(const char* function, const char* file, int line) 
+{
 	while (GLenum error = glGetError()) {
 		std::cout << "[OpenGL Error] (" << error << "): " << function <<
 			", " << file << ":" << line << std::endl;
@@ -56,12 +60,14 @@ static bool GlLogCall(const char* function, const char* file, int line) {
 	return true;
 }
 
-struct ShaderProgramSource {
+struct ShaderProgramSource 
+{
 	std::string VertexSouce;
 	std::string FragmentSource;
 };
 
-int modes[] = {
+int modes[] = 
+{
 	GL_POINTS,
 	GL_LINES,
 	GL_LINE_STRIP,
@@ -74,6 +80,52 @@ int modeIdx = 0;
 int curMode = 0;
 unsigned int vertex_buffer = 0;
 unsigned int idx_buffer = 0;
+
+/* Normalize lower left screen coordinate system (0 to 3) to center screen coordinate system (-1 to +1)*/
+static float n(float x) 
+{
+	float normal = 2 * (((x - 0) / (3 - 0))) - 1;
+	return normal;
+}
+
+float points[] = 
+{ 
+	n(1.0f), n(1.0f), 
+	n(2.0f), n(1.0f), 
+	n(2.0f), n(2.0f) 
+};
+unsigned int idx3[] = { 0, 1, 2 };
+
+float lines[] = 
+{ 
+	n(0.5f), n(1.0f), 
+	n(2.0f), n(2.0f), 
+	n(1.8f), n(2.6f), 
+	n(0.7f), n(2.2f), 
+	n(1.6f), n(1.2f), 
+	n(1.0f), n(0.5f) 
+};
+unsigned int idx6[] = { 0, 1, 2, 3, 4, 5 };
+
+float t1[] = 
+{
+	n(0.3f),   n(1.0f),   n(0.5f),
+	n(2.7f),   n(0.85f),  n(0.0f),
+	n(2.7f),   n(1.15f),  n(0.0f)
+};
+float t2[] = 
+{
+	n(2.53f),  n(0.71f),  n(0.5f),
+	n(1.46f),  n(2.86f),  n(0.0f),
+	n(1.2f),   n(2.71f),  n(0.0f)
+};
+float t3[] = 
+{
+	n(1.667f), n(2.79f),  n(0.5f),
+	n(0.337f), n(0.786f), n(0.0f),
+	n(0.597f), n(0.636f), n(0.0f)
+};
+
 
 static void error_callback(int error, const char* description) {
 	std::cout << "error = " << error << ", description = " << description << std::endl;
@@ -153,67 +205,43 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 	return program;
 }
 
-static void genBuffers() {
-	GlCall(glEnableVertexAttribArray(0));
-	GlCall(glGenBuffers(1, &vertex_buffer));
-	GlCall(glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer));
-	GlCall(glGenBuffers(1, &idx_buffer));
-	GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idx_buffer));
-}
-
-static void bufferData(float points[], int p_size, unsigned int indxs[], int i_size, unsigned int points_per_vertex) {
-	GlCall(glVertexAttribPointer(0, points_per_vertex, GL_FLOAT, GL_FALSE, 0, 0)); // tell GL the vertices start at idx 0 and are 2 floats long.
-	GlCall(glBufferData(GL_ARRAY_BUFFER, (p_size * sizeof(float)), points, GL_STATIC_DRAW));
-	GlCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, (i_size * sizeof(unsigned int)), indxs, GL_STATIC_DRAW)); // initialize the buffer store with data
-}
-
-/* Normalize lower left screen coordinate system (0 to 3) to center screen coordinate system (-1 to +1)*/
-static float n(float x) {
-	float normalized = 2 * (((x - 0) / (3 - 0))) - 1;
-	return normalized;
-}
-
 static void drawPoints() {
-	float points[] = { n(1.0), n(1.0), n(2.0), n(1.0), n(2.0), n(2.0) };
-	unsigned int indices[] = { 0, 1, 2 };
-	bufferData(points, 6, indices, 3, 2);
+	VertexBuffer* vBuf = new VertexBuffer(points, 6 * sizeof(float));
+	IndexBuffer* iBuf = new IndexBuffer(idx3, 3);
+	GlCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0)); // tell GL the vertices start at idx 0 and are 2 floats long.
 	GlCall(glDrawElements(GL_POINTS, 6, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
+	delete vBuf;
+	delete iBuf;
 }
 
 static void drawLines(int mode) {
-	float points[] = { n(0.5), n(1.0), n(2.0), n(2.0), n(1.8), n(2.6), n(0.7), n(2.2), n(1.6), n(1.2), n(1.0), n(0.5) };
-	unsigned int indices[] = { 0, 1, 2, 3, 4, 5 };
-	bufferData(points, 12, indices, 6, 2);
-	GlCall(glDrawElements(mode, 6, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
+	VertexBuffer vBuf(lines, 12 * sizeof(float));
+	IndexBuffer iBuf(idx6, 6);
+	GlCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0)); 
+	GlCall(glDrawElements(mode, 6, GL_UNSIGNED_INT, nullptr));
+	vBuf.Unbind();
+	iBuf.Unbind();
 }
 
 static void drawTriangles() {
-	float p1[] = {
-		n(0.3),   n(1.0),   n(0.5),
-		n(2.7),   n(0.85),  n(0.0),
-		n(2.7),   n(1.15),  n(0.0)
-	};
-	float p2[] = {
-		n(2.53),  n(0.71),  n(0.5),
-		n(1.46),  n(2.86),  n(0.0),
-		n(1.2),   n(2.71),  n(0.0)
-	};
-	float p3[] = {
-		n(1.667), n(2.79),  n(0.5),
-		n(0.337), n(0.786), n(0.0),
-		n(0.597), n(0.636), n(0.0)
-	};
-	unsigned int indices[] = { 0, 1, 2 };
+	VertexBuffer vBuf1(t1, 9 * sizeof(float));
+	IndexBuffer iBuf(idx3, 3);
 	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); // red
-	bufferData(p1, 9, indices, 3, 3);
+	GlCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0));
 	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr));
+	vBuf1.Unbind();
+	VertexBuffer vBuf2(t2, 9 * sizeof(float));
 	GlCall(glUniform4f(location, 0.0, 1.0, 0.0, 1.0)); // green
-	bufferData(p2, 9, indices, 3, 3);
+	GlCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0));
 	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr));
+	vBuf2.Unbind();
+	VertexBuffer vBuf3(t3, 9 * sizeof(float));
 	GlCall(glUniform4f(location, 0.0, 0.0, 1.0, 1.0)); // blue
-	bufferData(p3, 9, indices, 3, 3);
+	GlCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0));
 	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr));
 	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); // red
+	vBuf3.Unbind();
+	iBuf.Unbind();
 }
 
 /*
@@ -267,7 +295,8 @@ int main() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	glfwSetErrorCallback(error_callback);
 
@@ -297,6 +326,11 @@ int main() {
 	glEnable(GL_POINT_SMOOTH);
 	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);	// Make round points, not square points
 
+	/* alloc the array and index buffers in the GPU */
+	unsigned int vao;
+	GlCall(glGenVertexArrays(1, &vao));
+	GlCall(glBindVertexArray(vao));
+
 	/* Compile the Shader source code */
 	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
 	unsigned int shader = CreateShader(source.VertexSouce, source.FragmentSource);
@@ -308,7 +342,7 @@ int main() {
 	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); //red
 
 	/* alloc the array and index buffers in the GPU */
-	genBuffers();
+	GlCall(glEnableVertexAttribArray(0));
 
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "OpenGL Vendor : " << glGetString(GL_VENDOR) << std::endl;

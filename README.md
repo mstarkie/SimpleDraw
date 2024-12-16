@@ -1,7 +1,7 @@
 # **SimpleDraw**
 ## 3-D Computer Graphics, Samuel R. Buss (OpenGL 4.6)
 
-### This is the **SampleDraw** application used in the book **3-D Computer Graphics by Samuel R. Buss, 1st Edition published 2005.** The original OpenGL code, that is used with the book, can be found here: [SimpleDraw](https://mathweb.ucsd.edu/~sbuss/MathCG/OpenGLsoft/SimpleDraw/SimpleDraw.html)
+### This is the **SimpleDraw** application used in the book **3-D Computer Graphics by Samuel R. Buss, 1st Edition published 2005.** The original OpenGL code, that is used with the book, can be found here: [SimpleDraw](https://mathweb.ucsd.edu/~sbuss/MathCG/OpenGLsoft/SimpleDraw/SimpleDraw.html)
 &nbsp;
 ### This is a working port of the same program to OpenGL v4.6 using the OpenGL YouTube series by **The Cherno** as a tutorial.
 &nbsp;
