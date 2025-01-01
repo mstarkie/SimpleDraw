@@ -150,12 +150,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\IndexBuffer.cpp" />
+    <ClCompile Include="src\Lines.cpp" />
+    <ClCompile Include="src\Points.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Triangle.cpp" />
     <ClCompile Include="src\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Lines.h" />
     <ClInclude Include="src\IndexBuffer.h" />
+    <ClInclude Include="src\Points.h" />
+    <ClInclude Include="src\Triangle.h" />
     <ClInclude Include="src\VertexBuffer.h" />
     <ClInclude Include="src\Renderer.h" />
   </ItemGroup>

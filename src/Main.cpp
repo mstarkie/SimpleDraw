@@ -4,61 +4,42 @@
 	The original OpenGL v1 code can be found here:
 	https://mathweb.ucsd.edu/~sbuss/MathCG/OpenGLsoft/SimpleDraw/SimpleDraw.html
 	This is a working port of the same program to OpenGL v4.6
- */
 
- /*
-	 MIT License
+	MIT License
 
-	 Copyright (c) 2024 Michael Starkie
+	Copyright (c) 2024 Michael Starkie
 
-	 Permission is hereby granted, free of charge, to any person obtaining a copy
-	 of this software and associated documentation files (the "Software"), to deal
-	 in the Software without restriction, including without limitation the rights
-	 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	 copies of the Software, and to permit persons to whom the Software is
-	 furnished to do so, subject to the following conditions:
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
 
-	 The above copyright notice and this permission notice shall be included in all
-	 copies or substantial portions of the Software.
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software.
 
-	 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-	 SOFTWARE.
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	SOFTWARE.
 
- */
+*/
+#include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Points.h"
+#include "Lines.h"
+#include "Triangle.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
-
-#define A_LENGTH(a) (sizeof(a) / sizeof(*a))
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define GlCall(x) GlClearError();\
-	x;\
-	ASSERT(GlLogCall(#x, __FILE__, __LINE__))
-
-static void GlClearError() 
-{
-	while (glGetError() != GL_NO_ERROR);
-}
-
-static bool GlLogCall(const char* function, const char* file, int line) 
-{
-	while (GLenum error = glGetError()) {
-		std::cout << "[OpenGL Error] (" << error << "): " << function <<
-			", " << file << ":" << line << std::endl;
-		return false;
-	}
-	return true;
-}
 
 struct ShaderProgramSource 
 {
@@ -76,7 +57,7 @@ int modes[] =
 };
 
 int location = 0;
-int modeIdx = 0;
+int modeIdx = 1;
 int curMode = 0;
 unsigned int vertex_buffer = 0;
 unsigned int idx_buffer = 0;
@@ -206,42 +187,35 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 }
 
 static void drawPoints() {
-	VertexBuffer* vBuf = new VertexBuffer(points, 6 * sizeof(float));
-	IndexBuffer* iBuf = new IndexBuffer(idx3, 3);
-	GlCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0)); // tell GL the vertices start at idx 0 and are 2 floats long.
-	GlCall(glDrawElements(GL_POINTS, 6, GL_UNSIGNED_INT, nullptr)); // GL state machine knows the data to be drawn is in buffer.
-	delete vBuf;
-	delete iBuf;
+	VertexBuffer vBuf(points, 6);
+	IndexBuffer iBuf(idx3, 3);
+	Points points(vBuf, iBuf);
+	points.Draw();
 }
 
 static void drawLines(int mode) {
-	VertexBuffer vBuf(lines, 12 * sizeof(float));
+	VertexBuffer vBuf(lines, 12);
 	IndexBuffer iBuf(idx6, 6);
-	GlCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0)); 
-	GlCall(glDrawElements(mode, 6, GL_UNSIGNED_INT, nullptr));
-	vBuf.Unbind();
-	iBuf.Unbind();
+	Lines lines(vBuf, iBuf, mode);
+	lines.Draw();
 }
 
 static void drawTriangles() {
-	VertexBuffer vBuf1(t1, 9 * sizeof(float));
+	VertexBuffer vBuf1(t1, 9);
 	IndexBuffer iBuf(idx3, 3);
+	Triangle t1(vBuf1, iBuf);
 	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); // red
-	GlCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0));
-	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr));
-	vBuf1.Unbind();
+	t1.Draw();
+
 	VertexBuffer vBuf2(t2, 9 * sizeof(float));
+	Triangle t2(vBuf2, iBuf);
 	GlCall(glUniform4f(location, 0.0, 1.0, 0.0, 1.0)); // green
-	GlCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0));
-	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr));
-	vBuf2.Unbind();
+	t2.Draw();
+
 	VertexBuffer vBuf3(t3, 9 * sizeof(float));
+	Triangle t3(vBuf2, iBuf);
 	GlCall(glUniform4f(location, 0.0, 0.0, 1.0, 1.0)); // blue
-	GlCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0));
-	GlCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr));
-	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); // red
-	vBuf3.Unbind();
-	iBuf.Unbind();
+	t3.Draw();
 }
 
 /*
@@ -251,6 +225,7 @@ static void drawTriangles() {
 static void drawScene() {
 	switch (curMode) {
 		case GL_POINTS:
+			GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); //red
 			drawPoints();
 			break;
 		case GL_LINES:
@@ -284,8 +259,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 			exit(EXIT_SUCCESS);
 	}
 }
-
-
 
 int main() {
 	GLFWwindow* window;
@@ -326,7 +299,6 @@ int main() {
 	glEnable(GL_POINT_SMOOTH);
 	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);	// Make round points, not square points
 
-	/* alloc the array and index buffers in the GPU */
 	unsigned int vao;
 	GlCall(glGenVertexArrays(1, &vao));
 	GlCall(glBindVertexArray(vao));
