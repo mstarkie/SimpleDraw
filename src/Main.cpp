@@ -34,18 +34,13 @@
 #include "Points.h"
 #include "Lines.h"
 #include "Triangle.h"
+#include "Shader.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
-
-struct ShaderProgramSource 
-{
-	std::string VertexSouce;
-	std::string FragmentSource;
-};
 
 int modes[] = 
 {
@@ -61,6 +56,7 @@ int modeIdx = 1;
 int curMode = 0;
 unsigned int vertex_buffer = 0;
 unsigned int idx_buffer = 0;
+Shader* shader;
 
 /* Normalize lower left screen coordinate system (0 to 3) to center screen coordinate system (-1 to +1)*/
 static float n(float x) 
@@ -107,83 +103,8 @@ float t3[] =
 	n(0.597f), n(0.636f), n(0.0f)
 };
 
-
 static void error_callback(int error, const char* description) {
 	std::cout << "error = " << error << ", description = " << description << std::endl;
-}
-
-static ShaderProgramSource ParseShader(const std::string& filepath) {
-	enum class ShaderType
-	{
-		NONE = -1, VERTEX = 0, FRAGMENT = 1
-	};
-
-	std::ifstream stream(filepath); // open file
-	std::string line;
-	std::stringstream ss[2];
-	ShaderType type = ShaderType::NONE;
-	while (getline(stream, line))
-	{
-		if (line.find("#shader") != std::string::npos)
-		{
-			if (line.find("vertex") != std::string::npos)
-				type = ShaderType::VERTEX;
-			else if (line.find("fragment") != std::string::npos)
-				type = ShaderType::FRAGMENT;
-		}
-		else
-		{
-			ss[(int)type] << line << '\n';
-		}
-	}
-
-	std::cout << "VERTEX" << std::endl;
-	std::cout << ss[0].str() << std::endl;
-	std::cout << "FRAGMENT" << std::endl;
-	std::cout << ss[1].str() << std::endl;
-
-	return { ss[0].str(), ss[1].str() };
-}
-
-static unsigned int CompileShader(unsigned int type, const std::string& source) {
-	unsigned int id = glCreateShader(type);
-	const char* src = source.c_str();
-	GlCall(glShaderSource(id, 1, &src, nullptr)); // set the source code in the shader to the 1 string
-	GlCall(glCompileShader(id));
-
-	int result;
-	GlCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
-	if (result == GL_FALSE)
-	{
-		int length;
-		GlCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
-		char* infoLog = (char*)alloca(length * sizeof(char));
-		GlCall(glGetShaderInfoLog(id, length, &length, infoLog));
-		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
-		std::cout << infoLog << std::endl;
-		GlCall(glDeleteShader(id));
-		return 0;
-
-	}
-
-	return id;
-}
-
-static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader) {
-	unsigned int program = glCreateProgram();
-	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
-	unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
-
-	// Attach shaders and link them to the program
-	GlCall(glAttachShader(program, vs));
-	GlCall(glAttachShader(program, fs));
-	GlCall(glLinkProgram(program));
-	GlCall(glValidateProgram(program));
-
-	GlCall(glDeleteShader(vs));
-	GlCall(glDeleteShader(fs));
-
-	return program;
 }
 
 static void drawPoints() {
@@ -204,17 +125,17 @@ static void drawTriangles() {
 	VertexBuffer vBuf1(t1, 9);
 	IndexBuffer iBuf(idx3, 3);
 	Triangle t1(vBuf1, iBuf);
-	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); // red
+	shader->SetUniform4f("u_Color", 1.0, 0.0, 0.0, 1.0); // red
 	t1.Draw();
 
 	VertexBuffer vBuf2(t2, 9 * sizeof(float));
 	Triangle t2(vBuf2, iBuf);
-	GlCall(glUniform4f(location, 0.0, 1.0, 0.0, 1.0)); // green
+	shader->SetUniform4f("u_Color", 0.0, 1.0, 0.0, 1.0); //green
 	t2.Draw();
 
 	VertexBuffer vBuf3(t3, 9 * sizeof(float));
 	Triangle t3(vBuf2, iBuf);
-	GlCall(glUniform4f(location, 0.0, 0.0, 1.0, 1.0)); // blue
+	shader->SetUniform4f("u_Color", 0.0, 0.0, 1.0, 1.0); // blue
 	t3.Draw();
 }
 
@@ -225,7 +146,7 @@ static void drawTriangles() {
 static void drawScene() {
 	switch (curMode) {
 		case GL_POINTS:
-			GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); //red
+			shader->SetUniform4f("u_Color", 1.0, 0.0, 0.0, 1.0); //red
 			drawPoints();
 			break;
 		case GL_LINES:
@@ -304,14 +225,9 @@ int main() {
 	GlCall(glBindVertexArray(vao));
 
 	/* Compile the Shader source code */
-	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
-	unsigned int shader = CreateShader(source.VertexSouce, source.FragmentSource);
-	GlCall(glUseProgram(shader));
-
-	/* Set the global variable u_Color in the fragment shader to a specific color */
-	location = glGetUniformLocation(shader, "u_Color");
-	ASSERT(location != -1);
-	GlCall(glUniform4f(location, 1.0, 0.0, 0.0, 1.0)); //red
+	shader = new Shader("res/shaders/Basic.shader");
+	shader->Bind();
+	shader->SetUniform4f("u_Color", 1.0, 0.0, 0.0, 1.0);
 
 	/* alloc the array and index buffers in the GPU */
 	GlCall(glEnableVertexAttribArray(0));
@@ -332,4 +248,6 @@ int main() {
 		/* Poll for and process events */
 		glfwPollEvents();
 	}
+
+	delete shader;
 }
